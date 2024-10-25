@@ -282,9 +282,9 @@
         </div>
         <div>
           <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
-          <p class="text-sm text-gray-400">123 AI Street, Tech City, TC 12345</p>
-          <p class="text-sm text-gray-400">Phone: (123) 456-7890</p>
-          <p class="text-sm text-gray-400">Email: info@swivel.ai</p>
+          <p class="text-sm text-gray-400">235 Dover Street, NY</p>
+          <p class="text-sm text-gray-400">Phone: cant say lol</p>
+          <p class="text-sm text-gray-400">Email: adamzaki1302@gmail.com</p>
         </div>
         <div>
           <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
