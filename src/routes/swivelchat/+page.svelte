@@ -1,15 +1,12 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
     import { fade, fly } from 'svelte/transition';
-    import { Client, Databases, Functions, ID, Query } from 'appwrite';
     import { Send, Loader2 } from 'lucide-svelte';
   
-    const client = new Client()
-      .setEndpoint('https://cloud.appwrite.io/v1')
-      .setProject('671cb149000760017e54');
-  
-    const databases = new Databases(client);
-    const functions = new Functions(client);
+    // Appwrite variables for later initialization
+    let client;
+    let databases;
+    let functions;
   
     const DATABASE_ID = '671cb3dd000c42f0d136';
     const COLLECTION_ID = '671cb3eb001a558ee5f4';
@@ -27,13 +24,28 @@
     let error = '';
     let scrollContainer: HTMLDivElement;
   
+    // Client-side initialization with onMount
     onMount(async () => {
-      await fetchMessages();
-      subscribeToMessages();
+        // Dynamically import the Appwrite SDK
+        const { Client, Databases, Functions, ID, Query } = await import('appwrite');
+
+        // Initialize Appwrite client and services
+        client = new Client()
+            .setEndpoint('https://cloud.appwrite.io/v1')
+            .setProject('671cb149000760017e54');
+
+        databases = new Databases(client);
+        functions = new Functions(client);
+
+        // Fetch initial messages and subscribe to new ones
+        await fetchMessages();
+        subscribeToMessages();
     });
   
     onDestroy(() => {
-      client.subscribe(`databases.${DATABASE_ID}.collections.${COLLECTION_ID}.documents`, () => {});
+        if (client) {
+            client.unsubscribe(`databases.${DATABASE_ID}.collections.${COLLECTION_ID}.documents`, () => {});
+        }
     });
   
     async function fetchMessages() {
@@ -66,19 +78,22 @@
       input = '';
   
       try {
+        // Save user message to the database
         await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
           role: 'user',
           content: userMessage,
           createdAt: new Date(),
         });
   
+        // Execute Appwrite function and parse response
         const response = await functions.createExecution('LLM', JSON.stringify({ message: userMessage }));
-  
-        const responseData = JSON.parse(response.responseBody);
+        const responseData = JSON.parse(response.response);
+        
         if (typeof responseData.reply !== 'string') {
           throw new Error('Invalid response from LLM function');
         }
   
+        // Save assistant's reply to the database
         await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
           role: 'assistant',
           content: responseData.reply,
@@ -90,8 +105,8 @@
       } finally {
         isLoading = false;
       }
-
-    }  
+    }
+  
     function scrollToBottom() {
       setTimeout(() => {
         if (scrollContainer) {
